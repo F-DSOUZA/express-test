@@ -1,6 +1,8 @@
 
-function addWorkoutToDb(db, workout){
-    db.push(workout)
+function addWorkoutToDb(db, workout){    
+    const workoutWithDate= workout;
+    workoutWithDate.timestamp = new Date()
+    db.push(workoutWithDate)
 }
 
 function translateDbToCsv(db){
