@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node --trace-deprecation ./bin/www ",
+    "start": "nodemon --trace-deprecation ./bin/www ",
     "test": "jest"
   },
   "dependencies": {
@@ -17,6 +17,7 @@
     "serve-favicon": "~2.3.2"
   },
   "devDependencies": {
-    "jest": "^29.0.3"
+    "jest": "^29.0.3",
+    "nodemon": "^2.0.20"
   }
 }

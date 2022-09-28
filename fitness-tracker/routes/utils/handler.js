@@ -1,13 +1,14 @@
+const {format} = require('date-fns')
 
 function addWorkoutToDb(db, workout){    
     const workoutWithDate= workout;
-    workoutWithDate.timestamp = new Date()
+    workoutWithDate.timestamp = format(new Date(), 'dd/MM/yy');
     db.push(workoutWithDate)
 }
 
 function translateDbToCsv(db){
     if (db.length){
-        const dbHeaders=["user_name", "workout_type", "workout_date"]
+        const dbHeaders=["user_name", "workout_type", "workout_date", "timestamp"]
         const headerString =  dbHeaders.join(',');
         const dbRowsToCsv = db.map(row =>  Object.values(row).join(',') )
         return [headerString, ...dbRowsToCsv].join('\r\n')
@@ -15,7 +16,23 @@ function translateDbToCsv(db){
     return "no workouts posted";
 };
 
+function translateDbToCsvByMonth(db, MM,YY){
+    const filterDate= MM.length===1? [`0${MM}`,YY ]:[MM, YY];
+    const filteredWorkouts = db.filter((workout)=> {
+        const workoutDate = workout.workout_date.slice(3).split('/');
+        if(workoutDate[0]===filterDate[0] && workoutDate[1]===filterDate[1] ){
+            return workout
+        }
+        return null;
+    })
+    if(filteredWorkouts.length){
+        return translateDbToCsv(filteredWorkouts)
+    }
+    return`no workouts posted in ${format(new Date(YY, MM, '00'),'MMMMMMM yyyy')}`
+}
+
 module.exports = {
   addWorkoutToDb,
   translateDbToCsv,
+  translateDbToCsvByMonth
 };

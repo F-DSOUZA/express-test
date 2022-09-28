@@ -1,4 +1,9 @@
 
+To run the app use command.  Nodemon is used within this command to watch for changes.
+```
+npm start
+```
+
 To run the app for debugging purposes, run the following command which will tell nodejs to turn on logging
 ```
 DEBUG=fitnesstracker:* npm start
@@ -28,4 +33,28 @@ The app structure created by express-generator:
 
 7 directories, 9 files
 
-running tests- npm test
+To run Jest unit tests, use:
+```
+npm test
+```
+
+Endpoints
+Get all workouts at:
+```
+http://localhost:3000
+```
+Post new workout to:
+```
+http://localhost:3000
+```
+With a workout in the format
+```
+{
+    "items":{"user_name":"testname", "workout_type":"testtype", "workout_date":"01/03/2022"}
+}
+```
+
+Get filtered workouts by month and year
+```
+http://localhost:3000/filter?month=03&year=2022
+```
