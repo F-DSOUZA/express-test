@@ -16,23 +16,22 @@ function translateDbToCsv(db){
     return "no workouts posted";
 };
 
-function translateDbToCsvByMonth(db, MM,YY){
+function filterWorkoutsByMonth(db, MM, YY){
+//year has to be in YYYY format
     const filterDate= MM.length===1? [`0${MM}`,YY ]:[MM, YY];
+
     const filteredWorkouts = db.filter((workout)=> {
         const workoutDate = workout.workout_date.slice(3).split('/');
         if(workoutDate[0]===filterDate[0] && workoutDate[1]===filterDate[1] ){
             return workout
         }
-        return null;
+    return null
     })
-    if(filteredWorkouts.length){
-        return translateDbToCsv(filteredWorkouts)
-    }
-    return`no workouts posted in ${format(new Date(YY, MM, '00'),'MMMMMMM yyyy')}`
+  return  filteredWorkouts? filteredWorkouts:`no workouts posted in ${format(new Date(YY, MM, '00'),'MMMMMMM yyyy')}`
 }
 
 module.exports = {
   addWorkoutToDb,
   translateDbToCsv,
-  translateDbToCsvByMonth
+  filterWorkoutsByMonth,
 };

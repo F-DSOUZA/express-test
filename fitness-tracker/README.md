@@ -13,7 +13,7 @@ If you only want to see the logs from the router implementation, then set the va
 
 
 The app structure created by express-generator:
-
+```
 ├── app.js
 ├── bin
 │   └── www
@@ -32,6 +32,7 @@ The app structure created by express-generator:
     └── layout.pug
 
 7 directories, 9 files
+```
 
 To run Jest unit tests, use:
 ```

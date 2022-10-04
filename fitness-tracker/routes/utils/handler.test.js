@@ -1,5 +1,5 @@
-const {format} = require('date-fns');
-const {addWorkoutToDb, translateDbToCsv, translateDbToCsvByMonth} = require('./handler');
+const { format } = require('date-fns');
+const { addWorkoutToDb,translateDbToCsv, filterWorkoutsByMonth,} = require('./handler');
 
 const currentDate = format(new Date(), 'dd/MM/yy');
 
@@ -17,6 +17,7 @@ const testWorkout2 = {
     "workout_date":"01/02/2022",
     "timestamp":currentDate
 };
+
 const testCsv =`user_name,workout_type,workout_date,timestamp\r\nFrancesca,run,01/01/2022,${currentDate}`;
 
 test('post route handler adds a new row to db array',()=>{
@@ -34,9 +35,9 @@ test('get route handler returns message if db empty',()=>{
 });
 
 test('get filter route handler returns csv containing workouts for specified month',()=>{
-    expect(translateDbToCsvByMonth([testWorkout, testWorkout2], '01','2022')).toEqual(testCsv);
+    expect(filterWorkoutsByMonth([testWorkout, testWorkout2], '01','2022')).toEqual([testWorkout]);
 });
 
 test('get filter route handler returns error message if no workouts found',()=>{
-    expect(translateDbToCsvByMonth([testWorkout, testWorkout2], '03','2022')).toEqual("no workouts posted in March 2022");
+    expect(filterWorkoutsByMonth([testWorkout, testWorkout2], '03','2022')).toEqual([]);
 });
