@@ -3,6 +3,7 @@ const { ReadError } = require("./errors/ReadError");
 const { MonthValidationError } = require("./errors/MonthValidationError");
 const { YearValidationError } = require("./errors/YearValidationError");
 const { ValidationError } = require("./errors/ValidationError");
+const { UserValidationError } = require("./errors/UserValidationError");
 
 function addWorkoutToDb(db, workout) {
   const workoutWithDate = workout;
@@ -56,7 +57,28 @@ function filterWorkoutsByMonth(db, month, year) {
   return filteredWorkouts || [];
 }
 
+function validateUser(accounts, uuid) {
+  const user = accounts.find((account) => account.uuid === uuid);
+  if (!user) {
+    throw new UserValidationError();
+  }
+  return user;
+}
+
+function getAccountData(accounts, uuid) {
+  try {
+    return validateUser(accounts, uuid);
+  } catch (err) {
+    if (err instanceof UserValidationError) {
+      throw new ReadError("Validation Error", err);
+    } else {
+      throw err;
+    }
+  }
+}
+
 module.exports = {
+  getAccountData,
   addWorkoutToDb,
   translateDbToCsv,
   filterWorkoutsByMonth,

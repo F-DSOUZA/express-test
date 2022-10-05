@@ -4,10 +4,12 @@ const {
   addWorkoutToDb,
   translateDbToCsv,
   filterWorkoutsByMonth,
+  getAccountData,
 } = require("./handler");
 const { ReadError } = require("./errors/ReadError");
 const { MonthValidationError } = require("./errors/MonthValidationError");
 const { YearValidationError } = require("./errors/YearValidationError");
+const { UserValidationError } = require("./errors/UserValidationError");
 
 const currentDate = format(new Date(), "dd/MM/yy");
 
@@ -28,6 +30,14 @@ const testWorkout2 = {
 
 const testCsv = `user_name,workout_type,workout_date,timestamp\r\nFrancesca,run,01/01/2022,${currentDate}`;
 
+const testAccount1 = {
+  uuid: 1234,
+  firstname: "Francesca",
+  lastname: "D'Souza",
+};
+const testAccount2 = { uuid: 2345, firstname: "Rui", lastname: "Ramos" };
+const testAccounts = [testAccount1, testAccount2];
+
 const MonthReadError = new ReadError(
   "Validation Error",
   new MonthValidationError()
@@ -35,6 +45,10 @@ const MonthReadError = new ReadError(
 const YearReadError = new ReadError(
   "Validation Error",
   new YearValidationError()
+);
+const userNotFoundError = new ReadError(
+  "Validation Error",
+  new UserValidationError()
 );
 
 test("post route handler adds a new row to db array", () => {
@@ -73,4 +87,13 @@ test("if the month is not in the correct format, when filtering, throw an error"
   expect(() =>
     filterWorkoutsByMonth([testWorkout, testWorkout2], "3", "2020")
   ).toThrow(MonthReadError);
+});
+
+// Rui -  why does this pass with any error type?
+test.only("invalid user error is thrown when uuid is not in the db", () => {
+  expect(() => getAccountData(testAccounts, 5678).toThrow(userNotFoundError));
+});
+
+test("account data is returned when valid uuid is given", () => {
+  expect(getAccountData(testAccounts, 1234)).toEqual(testAccount1);
 });

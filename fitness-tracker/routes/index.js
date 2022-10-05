@@ -7,9 +7,14 @@ const {
   addWorkoutToDb,
   translateDbToCsv,
   filterWorkoutsByMonth,
+  getAccountData,
 } = require("./utils/handler");
 
 const db = [];
+const accounts = [
+  { uuid: "1234", firstname: "Francesca", lastname: "D'Souza" },
+  { uuid: "2345", firstname: "Rui", lastname: "Ramos" },
+];
 
 const buildSuccessResponse = (data) => ({ success: true, data });
 const buildErrorResponse = (error) => ({
@@ -24,6 +29,15 @@ router.get("/", (req, res) => {
       res.send(translateDbToCsv(db));
     }
     res.send(buildSuccessResponse(db));
+  } catch (error) {
+    res.status(500).send(buildErrorResponse(error));
+  }
+});
+
+router.get("/account/:uuid", (req, res) => {
+  try {
+    res.setHeader("Content-Type", "application/json");
+    res.send(buildSuccessResponse(getAccountData(accounts, req.params.uuid)));
   } catch (error) {
     res.status(500).send(buildErrorResponse(error));
   }
