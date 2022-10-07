@@ -1,29 +1,52 @@
-const { format } = require("date-fns");
 const { ReadError } = require("./errors/ReadError");
 const { MonthValidationError } = require("./errors/MonthValidationError");
 const { YearValidationError } = require("./errors/YearValidationError");
 const { ValidationError } = require("./errors/ValidationError");
-const { UserValidationError } = require("./errors/UserValidationError");
 
-function addWorkoutToDb(db, workout) {
-  const workoutWithDate = workout;
-  workoutWithDate.timestamp = format(new Date(), "dd/MM/yy");
-  db.push(workoutWithDate);
+const {
+  createAccount,
+  createWorkout,
+  getFilteredWorkoutsFromDb,
+  getAccountFromDb,
+  getWorkoutsFromDb,
+} = require("./queries");
+
+async function addWorkout(uuid, workout) {
+  const workoutWithUUID = workout;
+  workoutWithUUID.uuid = uuid;
+  const { data, error } = await createWorkout(workoutWithUUID);
+  if (data) {
+    return data;
+  }
+  return error.message;
 }
 
-function translateDbToCsv(db) {
-  if (db.length) {
-    const dbHeaders = [
-      "user_name",
-      "workout_type",
-      "workout_date",
-      "timestamp",
-    ];
-    const headerString = dbHeaders.join(",");
-    const dbRowsToCsv = db.map((row) => Object.values(row).join(","));
-    return [headerString, ...dbRowsToCsv].join("\r\n");
+async function getWorkouts(uuid) {
+  const { data } = await getWorkoutsFromDb(uuid);
+  if (data && data.length) {
+    return data;
   }
-  return [];
+  throw new Error("could not retrieve data for this user");
+}
+
+async function translateDbToCsv(uuid) {
+  const { data } = await getWorkoutsFromDb(uuid);
+  if (data) {
+    if (data.length) {
+      const dbHeaders = [
+        "user_name",
+        "workout_type",
+        "workout_date",
+        "timestamp",
+      ];
+      const headerString = dbHeaders.join(",");
+      const dbRowsToCsv = data.map((row) => Object.values(row).join(","));
+      return [headerString, ...dbRowsToCsv].join("\r\n");
+    }
+    return [];
+  }
+
+  throw new Error();
 }
 
 function validateDate(month, year) {
@@ -36,7 +59,7 @@ function validateDate(month, year) {
   }
 }
 
-function filterWorkoutsByMonth(db, month, year) {
+async function filterWorkoutsByMonth(uuid, month, year) {
   try {
     validateDate(month, year);
   } catch (err) {
@@ -45,41 +68,38 @@ function filterWorkoutsByMonth(db, month, year) {
     }
     throw err;
   }
-
-  const filterDate = [month, year];
-  const filteredWorkouts = db.filter((workout) => {
-    const workoutDate = workout.workout_date.slice(3).split("/");
-    if (workoutDate[0] === filterDate[0] && workoutDate[1] === filterDate[1]) {
-      return workout;
+  const { data } = await getFilteredWorkoutsFromDb(uuid, `${month}/${year}`);
+  if (data) {
+    if (data.length) {
+      return data;
     }
     return null;
-  });
-  return filteredWorkouts || [];
+  }
+  throw new Error();
 }
 
-function validateUser(accounts, uuid) {
-  const user = accounts.find((account) => account.uuid === uuid);
-  if (!user) {
-    throw new UserValidationError();
+async function addAccount(user) {
+  const { data } = await createAccount(user);
+  if (data && data.length) {
+    return data;
   }
-  return user;
+  // in what scenario would this fail and it better to throw error;
+  throw new Error();
 }
 
-function getAccountData(accounts, uuid) {
-  try {
-    return validateUser(accounts, uuid);
-  } catch (err) {
-    if (err instanceof UserValidationError) {
-      throw new ReadError("Validation Error", err);
-    } else {
-      throw err;
-    }
+async function getAccount(uuid) {
+  const { data } = await getAccountFromDb(uuid);
+  if (data && data.length) {
+    return data;
   }
+  throw new Error();
 }
 
 module.exports = {
-  getAccountData,
-  addWorkoutToDb,
+  getAccount,
+  addWorkout,
   translateDbToCsv,
   filterWorkoutsByMonth,
+  addAccount,
+  getWorkouts,
 };

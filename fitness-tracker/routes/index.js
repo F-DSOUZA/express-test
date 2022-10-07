@@ -4,17 +4,11 @@ const express = require("express");
 const router = express.Router();
 router.use(cors());
 const {
-  addWorkoutToDb,
+  getWorkouts,
+  addWorkout,
   translateDbToCsv,
   filterWorkoutsByMonth,
-  getAccountData,
 } = require("./utils/handler");
-
-const db = [];
-const accounts = [
-  { uuid: "1234", firstname: "Francesca", lastname: "D'Souza" },
-  { uuid: "2345", firstname: "Rui", lastname: "Ramos" },
-];
 
 const buildSuccessResponse = (data) => ({ success: true, data });
 const buildErrorResponse = (error) => ({
@@ -22,47 +16,42 @@ const buildErrorResponse = (error) => ({
   error: error.message,
 });
 
-router.get("/", (req, res) => {
+router.post("/", async (req, res) => {
   try {
+    const { uuid } = req.query;
+    const data = await addWorkout(uuid, req.body);
+    res.setHeader("Content-Type", "application/json");
+    res.send(buildSuccessResponse(data));
+  } catch (error) {
+    res.status(500).send(buildErrorResponse(error));
+  }
+});
+
+router.get("/", async (req, res) => {
+  try {
+    const { uuid } = req.query;
     if (req.headers.format === "csv") {
       res.setHeader("Content-Type", "text/csv");
-      res.send(translateDbToCsv(db));
+      const csvData = await translateDbToCsv(uuid);
+      res.send(buildSuccessResponse(csvData));
     }
-    res.send(buildSuccessResponse(db));
+    const data = await getWorkouts(uuid);
+    res.send(buildSuccessResponse(data));
   } catch (error) {
     res.status(500).send(buildErrorResponse(error));
   }
 });
 
-router.get("/account/:uuid", (req, res) => {
+router.get("/filter", async (req, res) => {
+  const { month, year, uuid } = req.query;
   try {
-    res.setHeader("Content-Type", "application/json");
-    res.send(buildSuccessResponse(getAccountData(accounts, req.params.uuid)));
-  } catch (error) {
-    res.status(500).send(buildErrorResponse(error));
-  }
-});
-
-router.post("/", (req, res) => {
-  try {
-    addWorkoutToDb(db, req.body);
-    res.setHeader("Content-Type", "application/json");
-    res.send(db);
-  } catch (error) {
-    res.status(500).send(buildErrorResponse(error));
-  }
-});
-
-router.get("/filter", (req, res) => {
-  const { month, year } = req.query;
-  try {
-    const filteredWorkouts = filterWorkoutsByMonth(db, month, year);
+    const data = await filterWorkoutsByMonth(uuid, month, year);
     if (req.headers.format === "csv") {
       res.setHeader("Content-Type", "text/csv");
-      res.send(translateDbToCsv(filteredWorkouts));
+      res.send(buildSuccessResponse(translateDbToCsv(data)));
     }
     res.setHeader("Content-Type", "application/json");
-    res.send(buildSuccessResponse(filteredWorkouts));
+    res.send(buildSuccessResponse(data));
   } catch (error) {
     if (error.message === "No DB") {
       res.status(404).send(buildErrorResponse(error));

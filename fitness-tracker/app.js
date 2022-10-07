@@ -5,13 +5,15 @@ const logger = require("morgan");
 const bodyParser = require("body-parser");
 
 const index = require("./routes/index");
+const account = require("./routes/account");
 
 const app = express();
-// Here we are configuring express to use body-parser as middle-ware.
+// Here we are configuring express to use abody-parser as middle-ware.
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(logger("dev"));
 app.use("/", index);
+app.use("/account", account);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
